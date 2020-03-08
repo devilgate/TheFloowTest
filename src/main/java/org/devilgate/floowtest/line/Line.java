@@ -13,8 +13,9 @@ import org.springframework.util.StringUtils;
  */
 public class Line {
 
-	final String line;
-	final Pattern junk = Pattern.compile("[^\\w\\s-]");
+	private static final Pattern CHARACTERS_TO_REMOVE = Pattern.compile("[^\\w\\s-'‘]");
+	private static final List<String> REMOVE_ON_THEIR_OWN = List.of("-", "'", "‘");
+	private final String line;
 
 	public Line(final String testLine) {
 
@@ -23,13 +24,13 @@ public class Line {
 
 	public List<String> parse() {
 
-		// Remove all non-letter, non-whitespace characters, except hyphens
-		String stripped = line.replaceAll(junk.pattern(), "");
-		List<String> parsed = new LinkedList<>(Arrays.asList(stripped.split("\\s")));
+		// Remove all non-letter, non-whitespace characters, except hyphens and apostrophes
+		var stripped = CHARACTERS_TO_REMOVE.matcher(line).replaceAll("");
+		var parsed = new LinkedList<>(Arrays.asList(stripped.split("\\s")));
 
-		// Remove any hyphens on their own or empty/blank entries. Could probably do this by
-		// constructing a more complex regex above, but then we'd have n+1 problems.
-		parsed.removeIf(s -> StringUtils.isEmpty(s) || s.trim().equals("-"));
+		// Remove any hyphens or apostrophes on their own, or empty/blank entries. Could probably do
+		// this by constructing a more complex regex above, but then we'd have n+1 problems.
+		parsed.removeIf(s -> StringUtils.isEmpty(s) || REMOVE_ON_THEIR_OWN.contains(s.trim()));
 		return parsed;
 	}
 }

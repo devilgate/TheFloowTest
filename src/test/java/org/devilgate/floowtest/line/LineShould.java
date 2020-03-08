@@ -9,10 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LineShould {
 
 	private static final String TEST_LINE = "The quick (brown) dog? ==; pie-eyed in the SKY. <xml"
-	                                        + " tags>, hello - |";
+	                                        + " tags>, hello - | O'Reilly '";
 	private static final List<String> EXPECTED_WORDS = List.of("The", "quick", "brown", "dog",
 	                                                           "pie-eyed", "in", "the","SKY",
-	                                                           "xml", "tags", "hello");
+	                                                           "xml", "tags", "hello", "O'Reilly");
 
 	@Test
 	public void returnWordsWhenLineReceived() {
@@ -21,7 +21,9 @@ public class LineShould {
 
 		// Could test for equality, but they don't have to be equal, just contain the same words.
 		List<String> results = classUnderTest.parse();
-		assertTrue(classUnderTest.parse().containsAll(EXPECTED_WORDS) &&
-		           EXPECTED_WORDS.containsAll(classUnderTest.parse()));
+		assertTrue(results.containsAll(EXPECTED_WORDS) &&
+		           EXPECTED_WORDS.containsAll(results));
 	}
 }
+
+
