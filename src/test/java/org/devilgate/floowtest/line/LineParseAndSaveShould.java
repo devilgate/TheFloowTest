@@ -1,51 +1,56 @@
 package org.devilgate.floowtest.line;
 
 import org.bson.Document;
+import org.hibernate.validator.internal.IgnoreForbiddenApisErrors;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class LineParseAndSaveShould {
 
-	private static final String LINE = "word again this that the other other word word, other "
-	                                   + "other other";
+	private static final String LINE = "word word word,";
 
 	@Mock
 	private MongoClient client;
 
 	@Mock
-	private DB db;
+	private MongoDatabase db;
 
 	@Mock
-	private DBCollection wordStore;
+	private MongoCollection<Document> wordStore;
 
 	@Test
 	public void giveCorrectCountsOnSaving() {
 
-		when(client.getDB(anyString())).thenReturn(db);
+		when(client.getDatabase(anyString())).thenReturn(db);
 		when(db.getCollection(anyString())).thenReturn(wordStore);
 
+		Document findWord = new Document();
+		findWord.append("Word", "word");
+		Document updatedWord = new Document();
+		updatedWord.append("$inc", new Document().append("Count", 1));
+		UpdateOptions options = new UpdateOptions().upsert(true);
+
 		var classUnderTest = new LineParseAndSave(client);
-		var notUsed = classUnderTest.processLine(LINE);
-		// var savedValues = classUnderTest.getWordCounts();
-		//
-		// assertEquals(1, savedValues.get("again"));
-		// assertEquals(2, savedValues.get("word"));
-		// assertEquals(2, savedValues.get("other"));
-		// assertEquals(1, savedValues.get("this"));
-		// assertEquals(1, savedValues.get("that"));
-		// assertEquals(1, savedValues.get("the"));
+		classUnderTest.processLine(LINE);
+
+		verify(wordStore, times(3)).updateOne(findWord, updatedWord, options);
 	}
 
+	@Disabled
 	@Test
 	public void writeToMongo() {
 
