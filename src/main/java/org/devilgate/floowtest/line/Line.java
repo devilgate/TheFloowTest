@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 public class Line {
 
 	private static final Pattern CHARACTERS_TO_REMOVE = Pattern.compile("[^\\w\\s-'‘]");
-	private static final List<String> REMOVE_ON_THEIR_OWN = List.of("-", "'", "‘");
+	private static final List<String> REMOVE_ON_THEIR_OWN = List.of("-", "'", "‘", "--");
 	private final String line;
 
 	public Line(final String testLine) {

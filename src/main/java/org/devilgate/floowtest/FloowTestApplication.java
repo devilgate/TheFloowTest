@@ -1,6 +1,7 @@
 package org.devilgate.floowtest;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import org.devilgate.floowtest.file.FileProcess;
 import org.devilgate.floowtest.line.LineParseAndSave;
@@ -15,6 +16,9 @@ import com.beust.jcommander.Parameter;
 public class FloowTestApplication {
 
 	public static final String DATABASE_NAME = "WordCount";
+	public static final String WORDS_COLLECTION_NAME = "Words";
+
+	private Connection connection;
 
 	public static void main(String[] args) throws IOException {
 
@@ -26,11 +30,13 @@ public class FloowTestApplication {
 
 	private void launch(String[] args) throws IOException {
 
-		// Check the arguments: if no -mongo specified, use the default
 		Args arguments = new Args();
 		JCommander commander = new JCommander(arguments);
 		commander.parse(args);
+		connection = new Connection(arguments.mongoUrl);
 
+		// If we have a source file, we are the startup instance, so we write the lines from the
+		// file to our queue.
 		if (arguments.source != null) {
 			populateQueue(arguments);
 		}
@@ -40,28 +46,27 @@ public class FloowTestApplication {
 
 	private void processQueue(final Args arguments) {
 
-		Connection connection = new Connection(arguments.mongoUrl);
-
-		// TODO: Move all that code into the Connection class.
-		LineParseAndSave parser = new LineParseAndSave(connection.getClient());
-		//
-
-		String line = connection.readQueueAndRemove();
+		System.out.println("Started processing queue at " + Instant.now());
+		var parser = new LineParseAndSave(connection);
+		var line = connection.readQueueAndRemove();
 		while (line != null && !line.equals("###Done###")) {
 
 			parser.processLine(line);
 			line = connection.readQueueAndRemove();
 		}
 
+		System.out.println("Finished processing queue at " + Instant.now());
 
-		System.out.println("Finished processing");
-		System.exit(0);
+		// If we're not the startup instance, we shut down here.
+		if (arguments.source == null) {
+			System.exit(0);
+		}
 
 	}
 
 	private void populateQueue(final Args arguments) throws IOException {
 
-		FileProcess process = new FileProcess(arguments.source, arguments.mongoUrl);
+		FileProcess process = new FileProcess(arguments.source, connection);
 		process.fileToQueue();
 	}
 
@@ -72,8 +77,8 @@ public class FloowTestApplication {
 
 		@Parameter(
 				names = "–source",
-				description = "The file to process. Default is dump.xml.")
-		private String source = "dump.xml";
+				description = "The file to process.")
+		private String source;
 
 		@Parameter(
 				names = "–mongo",

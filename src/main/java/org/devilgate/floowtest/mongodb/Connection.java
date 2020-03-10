@@ -3,20 +3,22 @@ package org.devilgate.floowtest.mongodb;
 import org.bson.Document;
 import org.devilgate.floowtest.FloowTestApplication;
 
-import com.mongodb.DBCursor;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.UpdateOptions;
 
 public class Connection {
 
 	private final String mongo;
 	private MongoClient client;
 	private MongoCollection<Document> queue;
+	private MongoCollection<Document> wordStore;
 
 	public Connection(final String mongo) {
 		this.mongo = mongo;
-		connectToDb();
+		init();
 	}
 
 	public void writeToQueue(String line) {
@@ -55,14 +57,28 @@ public class Connection {
 		client.close();
 	}
 
-	private void connectToDb() {
+	public void init() {
 
 		client = new MongoClient(mongo);
 		MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
 		queue = db.getCollection("Queue");
+		queue.deleteMany(new Document());
+		wordStore = db.getCollection(FloowTestApplication.WORDS_COLLECTION_NAME);
+		wordStore.deleteMany(new Document());
+		wordStore.createIndex(Indexes.ascending("Word"));
 	}
 
 	public MongoClient getClient() {
 		return client;
+	}
+
+	public void saveWord(final String word) {
+
+		Document findWord = new Document();
+		findWord.append("Word", word);
+		Document updatedWord = new Document();
+		updatedWord.append("$inc", new Document().append("Count", 1));
+		UpdateOptions options = new UpdateOptions().upsert(true);
+		wordStore.updateOne(findWord, updatedWord, options);
 	}
 }

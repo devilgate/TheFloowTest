@@ -6,25 +6,26 @@ import java.util.Map;
 
 import org.bson.Document;
 import org.devilgate.floowtest.FloowTestApplication;
+import org.devilgate.floowtest.mongodb.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
 
-@Service
+// @Service
 public class LineParseAndSave {
 
-	private MongoCollection<Document> wordStore;
+	// private MongoCollection<Document> wordStore;
 
+	private final Connection conn;
 	private Map<String, Long> wordCounts = new HashMap<>();
 
-	@Autowired
-	public LineParseAndSave(final MongoClient client) {
-		final MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
-		wordStore = db.getCollection("Words");
+	// @Autowired
+	public LineParseAndSave(final Connection conn) {
+
+		this.conn = conn;
 	}
 
 	public boolean processLine(String textLine) {
@@ -38,12 +39,7 @@ public class LineParseAndSave {
 		for (String word : words) {
 			System.out.printf("Word: %s%n", word);
 
-			Document findWord = new Document();
-			findWord.append("Word", word);
-			Document updatedWord = new Document();
-			updatedWord.append("$inc", new Document().append("Count", 1));
-			UpdateOptions options = new UpdateOptions().upsert(true);
-			wordStore.updateOne(findWord, updatedWord, options);
+			conn.saveWord(word);
 		}
 
 		return true;

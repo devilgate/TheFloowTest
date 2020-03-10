@@ -17,21 +17,23 @@ import org.devilgate.floowtest.mongodb.Connection;
 public class FileProcess {
 
 	private final String fileName;
-	private final String mongo;
+	private final Connection conn;
 	private Path file;
 	private BufferedReader bufferedReader;
-	private Connection conn;
 
-	public FileProcess(final String fileName, final String mongo) {
+	public FileProcess(final String fileName, final Connection conn) {
 		this.fileName = fileName;
-		this.mongo = mongo;
+		this.conn = conn;
 	}
 
 	public void fileToQueue() throws IOException {
 
-		conn = new Connection(mongo);
 		prepareFile();
 		sendLinesToQueue();
+	}
+
+	public void createWordsCollection() {
+
 	}
 
 	private void sendLinesToQueue() throws IOException {
@@ -67,8 +69,6 @@ public class FileProcess {
 
 		bufferedReader = new BufferedReader(reader);
 	}
-
-
 
 	private boolean isZipped() throws IOException {
 		return Files.probeContentType(file).contains("compress");

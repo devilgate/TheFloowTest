@@ -9,10 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LineShould {
 
 	private static final String TEST_LINE = "The quick (brown) dog? ==; pie-eyed in the SKY. <xml"
-	                                        + " tags>, hello - | O'Reilly '";
+	                                        + " tags>, hello - | O'Reilly ' -- I'm";
 	private static final List<String> EXPECTED_WORDS = List.of("The", "quick", "brown", "dog",
 	                                                           "pie-eyed", "in", "the","SKY",
-	                                                           "xml", "tags", "hello", "O'Reilly");
+	                                                           "xml", "tags", "hello", "O'Reilly",
+	                                                           "I'm");
 
 	@Test
 	public void returnWordsWhenLineReceived() {
