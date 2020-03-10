@@ -16,7 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LineParseAndSaveShould {
 
-	private static final String LINE = "word again this that the other other word";
+	private static final String LINE = "word again this that the other other word word, other "
+	                                   + "other other";
 
 	@Mock
 	private MongoClient client;

@@ -8,10 +8,10 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 
 @Service
 public class LineParseAndSave {
@@ -37,18 +37,15 @@ public class LineParseAndSave {
 		for (String word : words) {
 			System.out.printf("Word: %s%n", word);
 
-
-			// wordStore.findOneAndUpdate()
-			long currentCount = 1;
-			wordStore.insertOne(new Document(word, currentCount));
-			// if (wordCounts.containsKey(word)) {
-			// 	currentCount = wordCounts.get(word) + 1;
-			// }
-			// wordCounts.put(word, currentCount);
+			Document findWord = new Document();
+			findWord.append("Word", word);
+			Document updatedWord = new Document();
+			updatedWord.append("$inc", new Document().append("Count", 1));
+			UpdateOptions options = new UpdateOptions().upsert(true);
+			wordStore.updateOne(findWord, updatedWord, options);
 		}
 
-		// Send to the MongoDB server
-		return false;
+		return true;
 	}
 
 	public Map<String, Long> getWordCounts() {
