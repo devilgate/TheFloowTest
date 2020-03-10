@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
+import org.devilgate.floowtest.FloowTestApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class LineParseAndSave {
 
 	@Autowired
 	public LineParseAndSave(final MongoClient client) {
-		final MongoDatabase db = client.getDatabase("WordCount");
+		final MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
 		wordStore = db.getCollection("Words");
 	}
 
