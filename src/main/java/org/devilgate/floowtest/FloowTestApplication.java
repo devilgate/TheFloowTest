@@ -25,6 +25,8 @@ public class FloowTestApplication {
 		FloowTestApplication app = new FloowTestApplication();
 		app.launch(args);
 
+		// Only the startup instance (the one with the -source argument set) should get here, so
+		// there will only be one web app.
 		SpringApplication.run(FloowTestApplication.class, args);
 	}
 
@@ -38,10 +40,19 @@ public class FloowTestApplication {
 		// If we have a source file, we are the startup instance, so we write the lines from the
 		// file to our queue.
 		if (arguments.source != null) {
+			connection.clearQueue();
+			connection.clearWords();
 			populateQueue(arguments);
 		}
 
+		// In either case we read the queue and process whatever we find.
 		processQueue(arguments);
+
+		// If we've finished processing the queue, and we are not the startup instance, then we
+		// shut down.
+		if (arguments.source == null) {
+			System.exit(0);
+		}
 	}
 
 	private void processQueue(final Args arguments) {
@@ -56,12 +67,6 @@ public class FloowTestApplication {
 		}
 
 		System.out.println("Finished processing queue at " + Instant.now());
-
-		// If we're not the startup instance, we shut down here.
-		if (arguments.source == null) {
-			System.exit(0);
-		}
-
 	}
 
 	private void populateQueue(final Args arguments) throws IOException {

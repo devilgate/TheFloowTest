@@ -57,15 +57,23 @@ public class Connection {
 		client.close();
 	}
 
-	public void init() {
+	private void init() {
 
 		client = new MongoClient(mongo);
 		MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
 		queue = db.getCollection("Queue");
-		queue.deleteMany(new Document());
 		wordStore = db.getCollection(FloowTestApplication.WORDS_COLLECTION_NAME);
-		wordStore.deleteMany(new Document());
 		wordStore.createIndex(Indexes.ascending("Word"));
+	}
+
+	public void clearWords() {
+
+		wordStore.deleteMany(new Document());
+	}
+
+	public void clearQueue() {
+
+		queue.deleteMany(new Document());
 	}
 
 	public MongoClient getClient() {
