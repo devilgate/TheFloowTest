@@ -2,19 +2,20 @@ package org.devilgate.floowtest;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.devilgate.floowtest.file.FileProcess;
 import org.devilgate.floowtest.line.LineParseAndSave;
 import org.devilgate.floowtest.mongodb.Connection;
+import org.devilgate.floowtest.mongodb.MongoRead;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.util.Pair;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-@SpringBootApplication
 public class FloowTestApplication {
 
 	public static final String DATABASE_NAME = "WordCount";
@@ -28,10 +29,6 @@ public class FloowTestApplication {
 		log.info("FloowTest Application launching...");
 		FloowTestApplication app = new FloowTestApplication();
 		app.launch(args);
-
-		// Only the primary instance (the one with the -source argument set) should get here, so
-		// there will only be one web app.
-		SpringApplication.run(FloowTestApplication.class, args);
 	}
 
 	/**
@@ -73,13 +70,54 @@ public class FloowTestApplication {
 		// If top or bottom is set, we want to display the appropriate results.
 		if (arguments.top > 0 || arguments.bottom > 0) {
 
+			printList(arguments.top, "Most");
+			printList(arguments.bottom, "Least");
+		}
 
+		if (arguments.printMoreStats) {
+			printMoreStats();
+		}
+	}
+
+	private void printMoreStats() {
+
+		MongoRead read = new MongoRead(connection);
+		long unique = read.howManyUniqueWords();
+		long oncelers = read.howManyOccurOnlyOnce();
+
+		System.out.printf("%n%nThere are %d unique words. %d of them occur only once.%n%n",
+		                  unique, oncelers);
+	}
+
+	private void printList(final int howMany, String direction) {
+
+		if (howMany > 0) {
+			MongoRead read = new MongoRead(connection);
+			System.out.printf("%n--- %s frequently-occurring words in set ---%n%n", direction);
+
+			List<Pair<String, Integer>> words = new ArrayList<>();
+			switch (direction) {
+				case "Most":
+					words = read.getTop(howMany);
+					break;
+				case "Least":
+					words = read.getBottom(howMany);
+					break;
+			}
+
+			System.out.printf("|____ Word ________________________________|_ Occurrences _|%n");
+			String LineFormat = "| %-40s | %13d |%n";
+			for (Pair<String, Integer> word : words) {
+				System.out.printf(LineFormat, word.getFirst(), word.getSecond());
+			}
+			System.out.printf("|__________________________________________|_______________|%n");
 		}
 	}
 
 	private boolean shouldProcessQueue(Args arguments) {
 
-		return arguments.source == null && arguments.bottom == 0 && arguments.top == 0;
+		// The only time we don't process the queue is when top or bottom is set, but source is not.
+		return arguments.bottom == 0 && arguments.top == 0 && arguments.source != null ;
 	}
 
 	private void processQueue(final Args arguments) {
@@ -131,5 +169,11 @@ public class FloowTestApplication {
 				description = "The number of least-frequently-used words to display."
 		)
 		private int bottom;
+
+		@Parameter(
+				names = "-more",
+				description = "If present, additional statistics will be printed"
+		)
+		private boolean printMoreStats;
 	}
 }

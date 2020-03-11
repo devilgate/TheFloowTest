@@ -1,7 +1,11 @@
 package org.devilgate.floowtest.mongodb;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
 import org.devilgate.floowtest.FloowTestApplication;
+import org.springframework.data.util.Pair;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -12,7 +16,6 @@ import com.mongodb.client.model.UpdateOptions;
 public class Connection {
 
 	private final String mongo;
-	private MongoClient client;
 	private MongoCollection<Document> queue;
 	private MongoCollection<Document> wordStore;
 
@@ -49,15 +52,10 @@ public class Connection {
 		queue.insertOne(done);
 	}
 
-	public void finishedWithClient() {
-
-		client.close();
-	}
-
 	private void init() {
 
-		client = new MongoClient(mongo);
-		MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
+		final MongoClient client = new MongoClient(mongo);
+		final MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
 		queue = db.getCollection("Queue");
 		wordStore = db.getCollection(FloowTestApplication.WORDS_COLLECTION_NAME);
 		wordStore.createIndex(Indexes.ascending("Word"));
@@ -75,10 +73,6 @@ public class Connection {
 		queue.deleteMany(new Document());
 	}
 
-	public MongoClient getClient() {
-		return client;
-	}
-
 	public void saveWord(final String word) {
 
 		Document findWord = new Document();
@@ -87,5 +81,37 @@ public class Connection {
 		updatedWord.append("$inc", new Document().append("Count", 1));
 		UpdateOptions options = new UpdateOptions().upsert(true);
 		wordStore.updateOne(findWord, updatedWord, options);
+	}
+
+	List<Pair<String, Integer>> getEntriesWithFewestOccurrences(int howMany) {
+
+		return getTopOrBottomList(howMany, 1);
+	}
+
+	List<Pair<String, Integer>> getEntriesWithMostOccurrences(int howMany) {
+
+		return getTopOrBottomList(howMany, -1);
+	}
+
+	long getNumberOfUniqueWords() {
+		return wordStore.countDocuments();
+	}
+
+	private List<Pair<String, Integer>> getTopOrBottomList(int howMany, int direction) {
+
+		var words = new ArrayList<Pair<String, Integer>>();
+		var sorter = new Document();
+		sorter.append("Count", direction);
+		var cursor = wordStore.find().sort(sorter).limit(howMany);
+		for (Document document : cursor) {
+			words.add(Pair.of(document.getString("Word"), document.getInteger("Count")));
+		}
+		return words;
+	}
+
+	public long howManyOccurOnlyOnce() {
+
+		Document query = new Document("Count", new Document("$eq", 1));
+		return wordStore.countDocuments(query);
 	}
 }
