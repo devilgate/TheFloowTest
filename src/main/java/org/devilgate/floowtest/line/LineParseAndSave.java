@@ -4,21 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.Document;
-import org.devilgate.floowtest.FloowTestApplication;
 import org.devilgate.floowtest.mongodb.Connection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // @Service
 public class LineParseAndSave {
 
-	// private MongoCollection<Document> wordStore;
-
+	private static final Logger log = LoggerFactory.getLogger(LineParseAndSave.class);
 	private final Connection conn;
 	private Map<String, Long> wordCounts = new HashMap<>();
 
@@ -37,7 +30,7 @@ public class LineParseAndSave {
 	private boolean save(List<String> words) {
 
 		for (String word : words) {
-			System.out.printf("Word: %s%n", word);
+			log.debug("Word: {}}", word);
 
 			conn.saveWord(word);
 		}

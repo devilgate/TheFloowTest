@@ -6,6 +6,8 @@ import java.time.Instant;
 import org.devilgate.floowtest.file.FileProcess;
 import org.devilgate.floowtest.line.LineParseAndSave;
 import org.devilgate.floowtest.mongodb.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -17,6 +19,7 @@ public class FloowTestApplication {
 
 	public static final String DATABASE_NAME = "WordCount";
 	public static final String WORDS_COLLECTION_NAME = "Words";
+	private static final Logger log = LoggerFactory.getLogger(FloowTestApplication.class);
 
 	private Connection connection;
 
@@ -57,7 +60,7 @@ public class FloowTestApplication {
 
 	private void processQueue(final Args arguments) {
 
-		System.out.println("Started processing queue at " + Instant.now());
+		log.debug("Started processing queue at {}", Instant.now());
 		var parser = new LineParseAndSave(connection);
 		var line = connection.readQueueAndRemove();
 		while (line != null && !line.equals("###Done###")) {
@@ -66,7 +69,7 @@ public class FloowTestApplication {
 			line = connection.readQueueAndRemove();
 		}
 
-		System.out.println("Finished processing queue at " + Instant.now());
+		log.debug("Finished processing queue at {}", Instant.now());
 	}
 
 	private void populateQueue(final Args arguments) throws IOException {

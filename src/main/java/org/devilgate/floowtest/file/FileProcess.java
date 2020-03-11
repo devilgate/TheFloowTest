@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipFile;
 
@@ -32,10 +31,6 @@ public class FileProcess {
 		sendLinesToQueue();
 	}
 
-	public void createWordsCollection() {
-
-	}
-
 	private void sendLinesToQueue() throws IOException {
 
 		String line = "";
@@ -45,7 +40,7 @@ public class FileProcess {
 			conn.writeToQueue(line);
 		}
 
-		// When we're done we write a suitable entry and close everything.
+		// When we're done we write a suitable entry and close the file.
 		conn.finishedWithQueue();
 		bufferedReader.close();
 	}
@@ -71,6 +66,9 @@ public class FileProcess {
 	}
 
 	private boolean isZipped() throws IOException {
-		return Files.probeContentType(file).contains("compress");
+
+		// Crude name-based test for now
+		return file.endsWith(".bz2") || file.endsWith(".zip") || file.endsWith(".gz");
+		// return Files.probeContentType(file).contains("compress");
 	}
 }
