@@ -30,9 +30,7 @@ public class Connection {
 
 	public String readQueueAndRemove() {
 
-		var cursor = queue.find();
-		Document document = cursor.first();
-
+		Document document = queue.findOneAndDelete(new Document());
 		String line = null;
 		if (document != null) {
 
@@ -41,7 +39,6 @@ public class Connection {
 			}
 
 			line = document.getString("Line");
-			queue.deleteOne(document);
 		}
 		return line;
 	}
