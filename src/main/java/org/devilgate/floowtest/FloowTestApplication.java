@@ -116,8 +116,12 @@ public class FloowTestApplication {
 
 	private boolean shouldProcessQueue(Args arguments) {
 
-		// The only time we don't process the queue is when top or bottom is set, but source is not.
-		return arguments.bottom == 0 && arguments.top == 0 && arguments.source != null ;
+		// The only time we don't process the queue is when any of the reporting options are set,
+		// but source is not.
+		return arguments.source != null
+		       || (arguments.top == 0
+		           && arguments.bottom == 0
+		           && !arguments.printMoreStats);
 	}
 
 	private void processQueue(final Args arguments) {
