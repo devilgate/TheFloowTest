@@ -8,23 +8,21 @@ import org.devilgate.floowtest.mongodb.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// @Service
 public class LineParseAndSave {
 
 	private static final Logger log = LoggerFactory.getLogger(LineParseAndSave.class);
 	private final Connection conn;
 	private Map<String, Long> wordCounts = new HashMap<>();
 
-	// @Autowired
 	public LineParseAndSave(final Connection conn) {
 
 		this.conn = conn;
 	}
 
-	public boolean processLine(String textLine) {
+	public boolean processLine(String textLine, boolean excludeStop) {
 
 		Line line = new Line(textLine);
-		return save(line.parse());
+		return save(line.parse(excludeStop));
 	}
 
 	private boolean save(List<String> words) {

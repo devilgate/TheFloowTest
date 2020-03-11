@@ -21,7 +21,7 @@ public class LineShould {
 		Line classUnderTest = new Line(TEST_LINE);
 
 		// Could test for equality, but they don't have to be equal, just contain the same words.
-		List<String> results = classUnderTest.parse();
+		List<String> results = classUnderTest.parse(false);
 		assertTrue(results.containsAll(EXPECTED_WORDS) &&
 		           EXPECTED_WORDS.containsAll(results));
 	}

@@ -26,7 +26,7 @@ public class Line {
 		this.line = testLine;
 	}
 
-	public List<String> parse() {
+	public List<String> parse(boolean excludeStop) {
 
 		// Remove all non-letter, non-whitespace characters, except hyphens and apostrophes
 		var stripped = CHARACTERS_TO_REMOVE.matcher(line).replaceAll("");
@@ -35,6 +35,11 @@ public class Line {
 		// Remove any hyphens or apostrophes on their own, or empty/blank entries. Could probably do
 		// this by constructing a more complex regex above, but then we'd have n+1 problems.
 		parsed.removeIf(s -> StringUtils.isEmpty(s) || REMOVE_ON_THEIR_OWN.contains(s.trim()));
+
+		// And remove if it's a stop word, and that has been requested.
+		if (excludeStop) {
+			parsed.removeIf(s -> StopWords.WORDS.contains(s.toLowerCase()));
+		}
 		log.debug("parsed line: {} ", parsed);
 		return parsed;
 	}

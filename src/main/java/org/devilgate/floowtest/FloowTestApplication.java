@@ -127,7 +127,7 @@ public class FloowTestApplication {
 		var line = connection.readQueueAndRemove();
 		while (line != null && !line.equals("###Done###")) {
 
-			parser.processLine(line);
+			parser.processLine(line, arguments.excludeStopWords);
 			line = connection.readQueueAndRemove();
 		}
 
@@ -175,5 +175,12 @@ public class FloowTestApplication {
 				description = "If present, additional statistics will be printed"
 		)
 		private boolean printMoreStats;
+
+		@Parameter(
+				names = "-excludeStopWords",
+				description = "If provided, the word count will exclude a standard set of English"
+				              + " stop words."
+		)
+		private boolean excludeStopWords;
 	}
 }

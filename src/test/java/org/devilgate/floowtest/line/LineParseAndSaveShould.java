@@ -21,7 +21,7 @@ public class LineParseAndSaveShould {
 	public void giveCorrectCountsOnSaving() {
 
 		var classUnderTest = new LineParseAndSave(conn);
-		classUnderTest.processLine(LINE);
+		classUnderTest.processLine(LINE, false);
 
 		verify(conn, times(3)).saveWord("word");
 	}
