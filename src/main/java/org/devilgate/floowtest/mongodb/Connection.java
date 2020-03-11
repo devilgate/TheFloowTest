@@ -61,6 +61,8 @@ public class Connection {
 		queue = db.getCollection("Queue");
 		wordStore = db.getCollection(FloowTestApplication.WORDS_COLLECTION_NAME);
 		wordStore.createIndex(Indexes.ascending("Word"));
+		wordStore.createIndex(Indexes.ascending("Count"));
+		wordStore.createIndex(Indexes.descending("Count"));
 	}
 
 	public void clearWords() {

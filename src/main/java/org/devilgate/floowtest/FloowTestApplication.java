@@ -25,14 +25,27 @@ public class FloowTestApplication {
 
 	public static void main(String[] args) throws IOException {
 
+		log.info("FloowTest Application launching...");
 		FloowTestApplication app = new FloowTestApplication();
 		app.launch(args);
 
-		// Only the startup instance (the one with the -source argument set) should get here, so
+		// Only the primary instance (the one with the -source argument set) should get here, so
 		// there will only be one web app.
 		SpringApplication.run(FloowTestApplication.class, args);
 	}
 
+	/**
+	 * We launch in one of three modes, depending on the command-line arguments. If -source is set,
+	 * we are the primary instance. We read the file and write each line to the queue. After that we
+	 * behave as a secondary instance.
+	 *
+	 * If neither source nor top/bottom is set, we are a secondary instance. We read the queue
+	 * and process each line.
+	 *
+	 * If top and/or bottom is set, we display the specified number of entries from the
+	 * appropriate part of the results.
+	 *
+	 */
 	private void launch(String[] args) throws IOException {
 
 		Args arguments = new Args();
@@ -43,19 +56,30 @@ public class FloowTestApplication {
 		// If we have a source file, we are the startup instance, so we write the lines from the
 		// file to our queue.
 		if (arguments.source != null) {
-			connection.clearQueue();
-			connection.clearWords();
 			populateQueue(arguments);
 		}
 
-		// In either case we read the queue and process whatever we find.
-		processQueue(arguments);
+		// If neither source nor top/bottom is set, we read the queue and process whatever we find.
+		if (shouldProcessQueue(arguments)) {
+			processQueue(arguments);
 
-		// If we've finished processing the queue, and we are not the startup instance, then we
-		// shut down.
-		if (arguments.source == null) {
-			System.exit(0);
+			// If we've finished processing the queue, and we are not the startup instance, then we
+			// shut down.
+			if (arguments.source == null) {
+				System.exit(0);
+			}
 		}
+
+		// If top or bottom is set, we want to display the appropriate results.
+		if (arguments.top > 0 || arguments.bottom > 0) {
+
+
+		}
+	}
+
+	private boolean shouldProcessQueue(Args arguments) {
+
+		return arguments.source == null && arguments.bottom == 0 && arguments.top == 0;
 	}
 
 	private void processQueue(final Args arguments) {
@@ -74,6 +98,8 @@ public class FloowTestApplication {
 
 	private void populateQueue(final Args arguments) throws IOException {
 
+		connection.clearQueue();
+		connection.clearWords();
 		FileProcess process = new FileProcess(arguments.source, connection);
 		process.fileToQueue();
 	}
@@ -89,9 +115,21 @@ public class FloowTestApplication {
 		private String source;
 
 		@Parameter(
-				names = "–mongo",
+				names = "-mongo",
 				description = "The host and port for the MongoDB instance, in the form "
 				              + "'host:port'. Default is localhost:27017.")
 		private String mongoUrl = "localhost:27017";
+
+		@Parameter(
+				names = "-top",
+				description = "The number of most-frequently-used words to display."
+		)
+		private int top;
+
+		@Parameter(
+				names = "-bottom",
+				description = "The number of least-frequently-used words to display."
+		)
+		private int bottom;
 	}
 }
