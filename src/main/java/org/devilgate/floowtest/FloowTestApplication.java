@@ -18,8 +18,6 @@ import com.beust.jcommander.Parameter;
 
 public class FloowTestApplication {
 
-	public static final String DATABASE_NAME = "WordCount";
-	public static final String WORDS_COLLECTION_NAME = "Words";
 	private static final Logger log = LoggerFactory.getLogger(FloowTestApplication.class);
 
 	private Connection connection;
@@ -45,6 +43,7 @@ public class FloowTestApplication {
 	 */
 	private void launch(String[] args) throws IOException {
 
+		log.info("Parsing command-line arguments...");
 		Args arguments = new Args();
 		JCommander commander = new JCommander(arguments);
 		commander.parse(args);
@@ -129,7 +128,7 @@ public class FloowTestApplication {
 		log.debug("Started processing queue at {}", Instant.now());
 		var parser = new LineParseAndSave(connection);
 		var line = connection.readQueueAndRemove();
-		while (line != null && !line.equals("###Done###")) {
+		while (line != null && !line.equals(Connection.DONE_SPECIAL_VALUE)) {
 
 			parser.processLine(line, arguments.excludeStopWords);
 			line = connection.readQueueAndRemove();

@@ -28,7 +28,7 @@ public class LineParseAndSave {
 	private boolean save(List<String> words) {
 
 		for (String word : words) {
-			log.debug("Word: {}}", word);
+			log.debug("Word: {}", word);
 
 			conn.saveWord(word);
 		}

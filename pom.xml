@@ -101,7 +101,10 @@
 		</dependencies>
 	</dependencyManagement>
 
+	<packaging>jar</packaging>
 	<build>
+		<finalName>challenge</finalName>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

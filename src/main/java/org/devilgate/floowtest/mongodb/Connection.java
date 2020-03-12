@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
-import org.devilgate.floowtest.FloowTestApplication;
 import org.springframework.data.util.Pair;
 
 import com.mongodb.MongoClient;
@@ -13,13 +12,27 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Connection {
 
+	public static final String WORDS_COLLECTION_NAME = "Words";
+	public static final String DATABASE_NAME = "WordCount";
+	public static final String QUEUE_COLLECTION_NAME = "Queue";
+	public static final String WORD_FIELD_NAME = "Word";
+	public static final String COUNT_FIELD_NAME = "Count";
+	public static final String LINE_NAME = "Line";
+	public static final String DONE_KEY = "Done";
+	public static final String DONE_SPECIAL_VALUE = "###Done###";
 	private final String mongo;
 	private MongoCollection<Document> queue;
 	private MongoCollection<Document> wordStore;
+	private MongoDatabase db;
 
 	public Connection(final String mongo) {
+
+		log.info("Connecting to MongoDB");
 		this.mongo = mongo;
 		init();
 	}
@@ -37,48 +50,58 @@ public class Connection {
 		String line = null;
 		if (document != null) {
 
-			if (document.containsKey("Done")) {
-				return "###Done###";
+			if (document.containsKey(DONE_KEY)) {
+				return DONE_SPECIAL_VALUE;
 			}
 
-			line = document.getString("Line");
+			line = document.getString(LINE_NAME);
 		}
 		return line;
 	}
 
 	public void finishedWithQueue() {
 
-		Document done = new Document().append("Done", true);
+		Document done = new Document().append(DONE_KEY, true);
 		queue.insertOne(done);
 	}
 
 	private void init() {
 
 		final MongoClient client = new MongoClient(mongo);
-		final MongoDatabase db = client.getDatabase(FloowTestApplication.DATABASE_NAME);
-		queue = db.getCollection("Queue");
-		wordStore = db.getCollection(FloowTestApplication.WORDS_COLLECTION_NAME);
-		wordStore.createIndex(Indexes.ascending("Word"));
-		wordStore.createIndex(Indexes.ascending("Count"));
-		wordStore.createIndex(Indexes.descending("Count"));
+		db = client.getDatabase(DATABASE_NAME);
+		log.info("Getting Queue collection");
+		queue = db.getCollection(QUEUE_COLLECTION_NAME);
+		log.info("Getting Words collection");
+		wordStore = db.getCollection(WORDS_COLLECTION_NAME);
+		log.info("Creating indexes");
+		wordStore.createIndex(Indexes.ascending(WORD_FIELD_NAME));
+		wordStore.createIndex(Indexes.ascending(COUNT_FIELD_NAME));
+		wordStore.createIndex(Indexes.descending(COUNT_FIELD_NAME));
 	}
 
 	public void clearWords() {
 
-		wordStore.deleteMany(new Document());
+		log.info("Clearing words");
+
+		// We drop and recreate, because clearing a large collection can be very
+		// slow.
+		wordStore.drop();
+		db.createCollection(WORDS_COLLECTION_NAME);
 	}
 
 	public void clearQueue() {
 
-		queue.deleteMany(new Document());
+		log.info("Clearing queue");
+		queue.drop();
+		db.createCollection(QUEUE_COLLECTION_NAME);
 	}
 
 	public void saveWord(final String word) {
 
 		Document findWord = new Document();
-		findWord.append("Word", word);
+		findWord.append(WORD_FIELD_NAME, word);
 		Document updatedWord = new Document();
-		updatedWord.append("$inc", new Document().append("Count", 1));
+		updatedWord.append("$inc", new Document().append(COUNT_FIELD_NAME, 1));
 		UpdateOptions options = new UpdateOptions().upsert(true);
 		wordStore.updateOne(findWord, updatedWord, options);
 	}
@@ -101,17 +124,18 @@ public class Connection {
 
 		var words = new ArrayList<Pair<String, Integer>>();
 		var sorter = new Document();
-		sorter.append("Count", direction);
+		sorter.append(COUNT_FIELD_NAME, direction);
 		var cursor = wordStore.find().sort(sorter).limit(howMany);
 		for (Document document : cursor) {
-			words.add(Pair.of(document.getString("Word"), document.getInteger("Count")));
+			words.add(Pair.of(document.getString(WORD_FIELD_NAME),
+			                  document.getInteger(COUNT_FIELD_NAME)));
 		}
 		return words;
 	}
 
 	public long howManyOccurOnlyOnce() {
 
-		Document query = new Document("Count", new Document("$eq", 1));
+		Document query = new Document(COUNT_FIELD_NAME, new Document("$eq", 1));
 		return wordStore.countDocuments(query);
 	}
 }
