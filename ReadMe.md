@@ -95,7 +95,7 @@ If a process were to fail, the other processes would continue without fuss.
 
 ### Report on Statistically Interesting Words
 
-See the `-more` parameter.
+See the `-more` parameter. The total number of unique words, and the number of words that are only used once are printed.
 
 ### Tradeoffs Between Efficiency and Accuracy
 
