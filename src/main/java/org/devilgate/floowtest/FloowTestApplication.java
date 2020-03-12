@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.devilgate.floowtest.file.FileProcess;
 import org.devilgate.floowtest.line.LineParseAndSave;
@@ -19,6 +21,8 @@ import com.beust.jcommander.Parameter;
 public class FloowTestApplication {
 
 	private static final Logger log = LoggerFactory.getLogger(FloowTestApplication.class);
+	private static final int STARTUP_QUEUE_READ_SLEEP_TIME = 1;
+	private static final int STARTUP_QUEUE_READ_RETRIES = 5;
 
 	private Connection connection;
 
@@ -127,14 +131,36 @@ public class FloowTestApplication {
 
 		log.debug("Started processing queue at {}", Instant.now());
 		var parser = new LineParseAndSave(connection);
-		var line = connection.readQueueAndRemove();
-		while (line != null && !line.equals(Connection.DONE_SPECIAL_VALUE)) {
+		var line = readWithRetries();
+		while (line.isPresent() && !line.get().equals(Connection.DONE_SPECIAL_VALUE)) {
 
-			parser.processLine(line, arguments.excludeStopWords);
+			parser.processLine(line.get(), arguments.excludeStopWords);
 			line = connection.readQueueAndRemove();
 		}
 
 		log.debug("Finished processing queue at {}", Instant.now());
+	}
+
+	/**
+	 * This is intended to give processes a few seconds on startup for the queue to become
+	 * populated.
+	 * @return an optional string
+	 */
+	private Optional<String> readWithRetries() {
+
+		var line = connection.readQueueAndRemove();
+		int retries = 0;
+		while (line.isEmpty() && retries < STARTUP_QUEUE_READ_RETRIES) {
+			try {
+				TimeUnit.SECONDS.sleep(STARTUP_QUEUE_READ_SLEEP_TIME);
+			} catch (InterruptedException e) {
+				// Should never happen.
+				throw new RuntimeException("Unexpected interrupt", e);
+			}
+			retries++;
+			line = connection.readQueueAndRemove();
+		}
+		return line;
 	}
 
 	private void populateQueue(final Args arguments) throws IOException {

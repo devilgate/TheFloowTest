@@ -2,8 +2,10 @@ package org.devilgate.floowtest.mongodb;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.bson.Document;
+import org.slf4j.Logger;
 import org.springframework.data.util.Pair;
 
 import com.mongodb.MongoClient;
@@ -12,9 +14,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class Connection {
 
 	public static final String WORDS_COLLECTION_NAME = "Words";
@@ -25,6 +24,7 @@ public class Connection {
 	public static final String LINE_NAME = "Line";
 	public static final String DONE_KEY = "Done";
 	public static final String DONE_SPECIAL_VALUE = "###Done###";
+	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Connection.class);
 	private final String mongo;
 	private MongoCollection<Document> queue;
 	private MongoCollection<Document> wordStore;
@@ -44,19 +44,19 @@ public class Connection {
 		queue.insertOne(lineDoc);
 	}
 
-	public String readQueueAndRemove() {
+	public Optional<String> readQueueAndRemove() {
 
 		Document document = queue.findOneAndDelete(new Document());
 		String line = null;
 		if (document != null) {
 
 			if (document.containsKey(DONE_KEY)) {
-				return DONE_SPECIAL_VALUE;
+				return Optional.of(DONE_SPECIAL_VALUE);
 			}
 
 			line = document.getString(LINE_NAME);
 		}
-		return line;
+		return Optional.ofNullable(line);
 	}
 
 	public void finishedWithQueue() {
