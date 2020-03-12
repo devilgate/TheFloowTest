@@ -73,8 +73,33 @@ On the suggested test file, the Wikipedia dump -- 18 GB zipped, 76 GB unzipped -
 
 As I described above, I pre-process the lines, removing punctuation characters, and so on. With an XML file this has the effect of creating words like "sitenameWikipediasitename", which is obviously not ideal.
 
+### Case Sensitivity
 
+The word count is case-sensitive. This has the potential downside that a "however," for example, will be counted differently depending on whether or not it starts a sentence. However, we have to balance that against the desire for references to a baker being kept distinct from references to people with the surname Baker.
 
-## Possible Alternatives
+It also means that typos like "BAker" will be counted separately again.
 
-## Potential Improvements
+The only way I can see around these conflicting requirements would be to have an option to merge the various versions at the point of displaying the count.
+
+The exception to all this is that the stop words are checked case-insensitively.
+
+## Notes on the Desirable Goals
+
+### Failure of a Server
+
+If a process were to fail, the other processes would continue without fuss.
+
+### Report on Statistically Interesting Words
+
+See the `-more` parameter.
+
+### Tradeoffs Between Efficiency and Accuracy
+
+I ran against a corpus of around 640,000 words (a long ebook converted to plain text). Using a single process, it took 13 minutes. Using five (including the primary one which does the enqueueing first), it took less than a minute.
+
+The results in both cases were the same for the top and bottom ten words, and similarly for the top 100 most frequently-used words. However, there were some small differences in the unique words, and the number that were used only once. This leads me to believe that there is some problem caused by having multiple processes.
+
+The most likely issue is contention for processes trying to count the same word. Both processes would have to update the same MongoDB document, so a race condition is possible. This would be very hard to debug.
+
+As to the master test file, since I couldn't complete processing it in a reasonable time on the equipment available, there's not much I can say about that.
+
