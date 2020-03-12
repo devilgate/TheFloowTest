@@ -35,7 +35,7 @@ All parameters are optional.
 | `-bottom`           | Takes a number. Prints this many of the words with the lowest count, in ascending order.   |
 | `-more`             | If provided, some other statistics are printed.                                            |
 
-If you run multiple instances for parallel processing, you should only specify `-source` on one instance. That one -- the "primary instance" -- will read the file and send its lines to a queue. Other instances will read the queue and do the counting. The primary instance will also process lines from the queue when it has finished reading the file.
+You can run multiple instances for parallel processing. When you do, you should only specify `-source` on one instance. That one -- the "primary instance" -- will read the file and send its lines to a queue. Other instances will read the queue and do the counting. The primary instance will also process lines from the queue when it has finished reading the file.
 
 You can give any of `-top`, `-bottom` and `-more` on a separate run, without `-source`, to get a report on the current contents of the database.
 
@@ -85,7 +85,7 @@ The exception to all this is that the stop words are checked case-insensitively.
 
 ### Zipped Files
 
-Since the Wikipedia dump comes zipped (actual BZ2 compressed), I investigate the possibility of running the process directly from compressed archives. There is code in place that attempts to do this. In theory it ought to be possible. However, when I ran it against the compressed file, it seemed to be picking up arbitrary groups of bytes as words, so there's something not quite right. I've left the code in place, though.
+Since the Wikipedia dump comes zipped (actually BZ2 compressed), I investigated the possibility of running the process directly from compressed archives. In theory it ought to be possible. However, when I ran it against the compressed file, it seemed to be picking up arbitrary groups of bytes as words, so there's something not quite right. I've left the code in place, though.
 
 ## Notes on the Desirable Goals
 
@@ -106,6 +106,10 @@ The results in both cases were the same for the top and bottom ten words, and si
 The most likely issue is contention for processes trying to count the same word. Both processes would have to update the same MongoDB document, so a race condition is possible. This would be very hard to debug.
 
 As to the master test file, since I couldn't complete processing it in a reasonable time on the equipment available, there's not much I can say about that.
+
+## Potential Improvements
+
+The biggest overhead is in reading the file and populating the queue. Splitting the file and having multiple processes reading the parts and feeding the queue would be a possible solution. That, of course, adds a new set of overheads. On this machine I would not have had the disk space to process the Wikipedia file in that way, for instance.
 
 
 
