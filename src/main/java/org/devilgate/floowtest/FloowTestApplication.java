@@ -129,7 +129,7 @@ public class FloowTestApplication {
 
 	private void processQueue(final Args arguments) {
 
-		log.debug("Started processing queue at {}", Instant.now());
+		log.info("Started processing queue at {}", Instant.now());
 		var parser = new LineParseAndSave(connection);
 		var line = readWithRetries();
 		while (line.isPresent() && !line.get().equals(Connection.DONE_SPECIAL_VALUE)) {
@@ -138,7 +138,7 @@ public class FloowTestApplication {
 			line = connection.readQueueAndRemove();
 		}
 
-		log.debug("Finished processing queue at {}", Instant.now());
+		log.info("Finished processing queue at {}", Instant.now());
 	}
 
 	/**
@@ -167,6 +167,7 @@ public class FloowTestApplication {
 
 		connection.clearQueue();
 		connection.clearWords();
+		log.info("Sending file to queue");
 		FileProcess process = new FileProcess(arguments.source, connection);
 		process.fileToQueue();
 	}

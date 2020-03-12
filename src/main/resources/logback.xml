@@ -74,7 +74,7 @@ https://github.com/StubbornJava/StubbornJava/blob/master/stubbornjava-examples/s
 	<logger name="org.mongodb" level="ERROR" />
 
 	<!-- Turn on debug logging for all loggers under org.devilgate -->
-	<logger name="org.devilgate" level="DEBUG"/>
+	<logger name="org.devilgate" level="INFO"/>
 
 </configuration>
 		<!-- // {{end:logback}}  -->
