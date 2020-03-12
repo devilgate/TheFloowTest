@@ -65,10 +65,9 @@ public class FileProcess {
 		bufferedReader = new BufferedReader(reader);
 	}
 
-	private boolean isZipped() throws IOException {
+	private boolean isZipped() {
 
 		// Crude name-based test for now
 		return file.endsWith(".bz2") || file.endsWith(".zip") || file.endsWith(".gz");
-		// return Files.probeContentType(file).contains("compress");
 	}
 }

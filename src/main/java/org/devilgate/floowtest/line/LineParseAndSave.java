@@ -12,20 +12,19 @@ public class LineParseAndSave {
 
 	private static final Logger log = LoggerFactory.getLogger(LineParseAndSave.class);
 	private final Connection conn;
-	private Map<String, Long> wordCounts = new HashMap<>();
 
 	public LineParseAndSave(final Connection conn) {
 
 		this.conn = conn;
 	}
 
-	public boolean processLine(String textLine, boolean excludeStop) {
+	public void processLine(String textLine, boolean excludeStop) {
 
 		Line line = new Line(textLine);
-		return save(line.parse(excludeStop));
+		save(line.parse(excludeStop));
 	}
 
-	private boolean save(List<String> words) {
+	private void save(List<String> words) {
 
 		for (String word : words) {
 			log.debug("Word: {}", word);
@@ -33,11 +32,5 @@ public class LineParseAndSave {
 			conn.saveWord(word);
 		}
 
-		return true;
-	}
-
-	public Map<String, Long> getWordCounts() {
-
-		return wordCounts;
 	}
 }
