@@ -43,7 +43,7 @@ You can give any of `-top`, `-bottom` and `-more` on a separate run, without `-s
 
 ### Analysing the words
 
-The main complexity here was preparing the data to make it suitable for analysing as a body of words. Because the master test file was XML, I decided to remove everything that wasn't naturally part of a word. You probably don't want to count "<xml>" as a word differently from "xml", for example.
+The main complexity here was preparing the data to make it suitable for analysing as a body of words. Because the master test file was XML, I decided to remove everything that wasn't naturally part of a word. You probably don't want to count "\<xml>" as a word differently from "xml", for example.
 
 So I removed all non-word, non-numeric characters, with the exception of hyphens and apostrophes. I kept those in, because hyphenated words -- like "non-numeric", above -- should be counted as one, not two. And apostrophes appear in names like "O'Reilly," and elsewhere.
 
